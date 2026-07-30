@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "seqrename"
+# Single source of truth: src/seqrename/__init__.py
+dynamic = ["version"]
+description = "Safe, previewable renaming for VFX image sequences"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+
+# The core library is pure stdlib on purpose - only the GUI needs a dependency.
+dependencies = []
+
+[project.optional-dependencies]
+gui = ["PySide6>=6.6"]
+dev = ["PySide6>=6.6", "pytest>=8", "pyinstaller>=6.6"]
+
+[project.gui-scripts]
+seqrename-gui = "seqrename.gui:main"
+
+[tool.setuptools.dynamic]
+version = { attr = "seqrename.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"seqrename.gui" = ["assets/*.svg"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

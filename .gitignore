@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Build output
+build/
+dist/
+# generated from seqrename.__version__ at build time
+packaging/version_info.txt
+
+# Journals written next to renamed sequences
+.seqrename/
+
+# OS
+Thumbs.db
+desktop.ini
+.DS_Store
