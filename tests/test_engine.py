@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from seqrename import (
+    journal,
     Case,
     ExtCase,
     OutputMode,
@@ -187,6 +188,60 @@ def test_commit_and_undo_round_trip(tmp_path):
     assert undo(jrn).ok
     assert sorted(p.name for p in tmp_path.glob("*.exr")) == before
     assert last_undoable(tmp_path) is None
+
+
+def test_commit_leaves_nothing_beside_the_files(tmp_path):
+    """The journal must not litter the folder holding the renamed sequence."""
+    make_seq(tmp_path, "s.", [1001, 1002])
+    assert Plan(scan(tmp_path), RenameOps(find="s.", replace="t.")).commit().ok
+
+    assert not (tmp_path / journal.LEGACY_DIR).exists()
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["t.1001.exr", "t.1002.exr"]
+    # ...but the journal still exists, in the per-user location.
+    assert last_undoable(tmp_path) is not None
+
+
+def test_legacy_journal_folder_is_migrated_and_removed(tmp_path):
+    """A .seqrename folder from an older version is swept up on scan."""
+    make_seq(tmp_path, "s.", [1001, 1002])
+    plan = Plan(scan(tmp_path), RenameOps(find="s.", replace="t."))
+    assert plan.commit().ok
+
+    # Put the journal back where the old version used to write it.
+    legacy = tmp_path / journal.LEGACY_DIR
+    legacy.mkdir()
+    current = last_undoable(tmp_path)
+    (legacy / current.path.name).write_bytes(current.path.read_bytes())
+    current.path.unlink()
+    assert legacy.exists()
+
+    assert journal.migrate_legacy(tmp_path) == 1
+    assert not legacy.exists()
+
+    # Undo still works after the move.
+    restored = last_undoable(tmp_path)
+    assert restored is not None
+    assert undo(restored).ok
+    assert sorted(p.name for p in tmp_path.glob("*.exr")) == ["s.1001.exr", "s.1002.exr"]
+
+
+def test_migrate_legacy_keeps_a_folder_holding_other_files(tmp_path):
+    legacy = tmp_path / journal.LEGACY_DIR
+    legacy.mkdir()
+    (legacy / "notes.txt").write_text("someone else's file")
+    assert journal.migrate_legacy(tmp_path) == 0
+    assert legacy.exists()
+
+
+def test_journal_retention_prunes_the_oldest(tmp_path):
+    from datetime import datetime, timedelta
+
+    start = datetime(2026, 1, 1, 12, 0, 0)
+    for i in range(8):
+        journal.write(tmp_path, "rename", [(tmp_path / f"a{i}", tmp_path / f"b{i}")],
+                      now=start + timedelta(seconds=i))
+    journal.prune(keep=3)
+    assert len(list(journal.journal_dir().glob("journal-*.json"))) == 3
 
 
 def test_recursive_commit_journals_at_the_scanned_root(tmp_path):

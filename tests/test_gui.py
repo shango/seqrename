@@ -63,6 +63,48 @@ def test_window_scans_and_previews(app, seq_dir):
     window.close()
 
 
+def test_clear_queue_empties_the_list_without_touching_files(app, seq_dir):
+    window = MainWindow(str(seq_dir))
+    for _ in range(20):
+        app.processEvents()
+    window.ops.find.setText("v001")
+    window.ops.replace.setText("v002")
+    settle(app, window)
+    assert window.sequence_list.count() == 1
+    assert window.apply_button.isEnabled()
+
+    window.clear_queue()
+    assert window.sequence_list.count() == 0
+    assert window.plan is None
+    assert window.table.model_.rowCount() == 0
+    assert not window.apply_button.isEnabled()
+    assert len(list(seq_dir.glob("*.exr"))) == 5  # nothing was renamed
+
+    window.rescan()  # F5 brings it back
+    for _ in range(20):
+        for worker in list(window._workers):
+            worker.wait(1000)
+        app.processEvents()
+    assert window.sequence_list.count() == 1
+    window.close()
+
+
+def test_scan_sweeps_up_a_legacy_journal_folder(app, seq_dir):
+    legacy = seq_dir / ".seqrename"
+    legacy.mkdir()
+    (legacy / "journal-20260101-000000-000.json").write_text(
+        '{"id": "20260101-000000-000", "created": "2026-01-01T00:00:00",'
+        ' "mode": "rename", "root": "' + str(seq_dir).replace("\\", "\\\\") + '", "entries": []}'
+    )
+    window = MainWindow(str(seq_dir))
+    for _ in range(30):
+        for worker in list(window._workers):
+            worker.wait(2000)
+        app.processEvents()
+    assert not legacy.exists()
+    window.close()
+
+
 def test_apply_then_undo(app, seq_dir, monkeypatch):
     monkeypatch.setattr(dialogs.ConfirmDialog, "exec", lambda self: QDialog.Accepted)
 

@@ -173,6 +173,18 @@ QPushButton#Ghost {{
 }}
 QPushButton#Ghost:hover {{ background: {SURFACE_2}; color: {TEXT}; }}
 
+/* Compact ghost, for the buttons that sit inside a panel header. */
+QPushButton#GhostSmall {{
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 3px 7px;
+    color: {TEXT_FAINT};
+    font-size: 11px;
+}}
+QPushButton#GhostSmall:hover {{ background: {SURFACE_2}; color: {TEXT}; }}
+QPushButton#GhostSmall:disabled {{ color: {STROKE_STRONG}; background: transparent; }}
+
 /* -- inputs -- */
 QLineEdit, QSpinBox, QComboBox {{
     background: {SURFACE};

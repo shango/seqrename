@@ -17,19 +17,25 @@ anything touches disk.
 - **Nothing is written until you press Apply.** The preview highlights the
   changed characters per file and flags collisions and duplicate targets.
 - **Safe by construction:** cycle-safe two-phase renames, rollback on any
-  mid-commit failure, a JSON undo journal, pre-commit checks for locked files,
-  and copy → verify → delete across volumes.
+  mid-commit failure, pre-commit checks for locked files, and
+  copy → verify → delete across volumes.
+- **Nothing is left behind.** Undo journals live in per-user app data, not in
+  your media folder, so a renamed sequence directory contains only the
+  sequence. `Clear` empties the queue without touching any file.
 
 Shortcuts: `Ctrl+O` browse · `F5` rescan · `Ctrl+Enter` apply · `Ctrl+Z` undo.
+
+Undo history is kept in `%LOCALAPPDATA%\SeqRename\journals` (override with
+`SEQRENAME_JOURNAL_DIR`); the newest 200 operations are retained.
 
 ## Download
 
 Prebuilt Windows installer, no Python or build step needed:
 
-**[releases/SeqRename-0.3.0-setup.exe](releases/SeqRename-0.3.0-setup.exe)** - 32 MB
+**[releases/SeqRename-0.4.0-setup.exe](releases/SeqRename-0.4.0-setup.exe)** - 32 MB
 
 ```
-sha256  b399ef1858932195e05cf3cc17db030a5b8d48aeb9571fd435b0279c58cc33b0
+sha256  eabb8398a5840e90c796c413a21753b548ce7872e490554263916852f3d3f10a
 ```
 
 Double-click it. It installs for the current user only, so there is no UAC
@@ -63,9 +69,9 @@ work on a locked-down networked workstation. Uninstall from Apps & features.
 Silent install, for deployment across several machines:
 
 ```powershell
-SeqRename-0.3.0-setup.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
-SeqRename-0.3.0-setup.exe /VERYSILENT /DIR="D:\Tools\SeqRename"
-SeqRename-0.3.0-setup.exe /ALLUSERS          # machine-wide; this one needs admin
+SeqRename-0.4.0-setup.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
+SeqRename-0.4.0-setup.exe /VERYSILENT /DIR="D:\Tools\SeqRename"
+SeqRename-0.4.0-setup.exe /ALLUSERS          # machine-wide; this one needs admin
 ```
 
 Compiling the installer needs [Inno Setup 6](https://jrsoftware.org/isdl.php) on

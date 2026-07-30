@@ -4,6 +4,26 @@ Semantic versioning. The version lives in `src/seqrename/__init__.py`; the
 package metadata, the app header badge and the Windows file-version resource
 are all derived from it.
 
+## [0.4.0] - 2026-07-30
+
+### Added
+- **Clear** button in the Sequences panel, next to Select all. Empties the
+  queue without touching a single file; F5 scans the folder again.
+
+### Changed
+- **Undo journals no longer sit next to the renamed files.** They now live in
+  per-user application data (`%LOCALAPPDATA%\SeqRename\journals` on Windows,
+  `$XDG_DATA_HOME/seqrename/journals` elsewhere), so a rename leaves the media
+  folder containing only media. Undo is unaffected - each journal records the
+  folder it belongs to, and the app looks up history by folder.
+  - The journals are the undo history, so deleting them on completion would
+    have removed the ability to undo; moving them keeps both properties.
+  - A `.seqrename` folder left by an earlier version is migrated into the new
+    location and removed the next time that folder is scanned. Undo entries
+    written by the old version keep working.
+  - Retention: the oldest journals are pruned once there are more than 200.
+  - `SEQRENAME_JOURNAL_DIR` overrides the location.
+
 ## [0.3.0] - 2026-07-30
 
 ### Changed

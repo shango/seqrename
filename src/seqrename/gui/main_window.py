@@ -21,7 +21,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from .. import __version__
+from .. import __version__, journal
 from ..fsops import human_size
 from ..ops import OutputMode
 from ..plan import Plan, Status, last_undoable, undo
@@ -34,6 +34,9 @@ from .preview_table import PreviewTable
 from .sequence_list import SequenceList
 from .thumbs import ThumbStrip
 from .workers import Worker
+
+
+DEFAULT_SPLITTER = [350, 365, 715]
 
 
 class MainWindow(QMainWindow):
@@ -91,7 +94,7 @@ class MainWindow(QMainWindow):
         self.splitter.setStretchFactor(0, 0)
         self.splitter.setStretchFactor(1, 0)
         self.splitter.setStretchFactor(2, 1)
-        self.splitter.setSizes([330, 360, 700])
+        self.splitter.setSizes(DEFAULT_SPLITTER)
         body_layout.addWidget(self.splitter)
 
         outer.addWidget(body, 1)
@@ -157,11 +160,17 @@ class MainWindow(QMainWindow):
         panel.header.insertWidget(1, self.seq_count)
 
         select_all = QPushButton("Select all")
-        select_all.setObjectName("Ghost")
+        select_all.setObjectName("GhostSmall")
         select_all.clicked.connect(lambda: self.sequence_list.select_all_sequences())
         panel.header.addWidget(select_all)
 
-        panel.setMinimumWidth(270)
+        self.clear_button = QPushButton("Clear")
+        self.clear_button.setObjectName("GhostSmall")
+        self.clear_button.setToolTip("Empty the list without touching any files (F5 to scan again)")
+        self.clear_button.clicked.connect(self.clear_queue)
+        panel.header.addWidget(self.clear_button)
+
+        panel.setMinimumWidth(300)
         self.sequence_list = SequenceList()
         self.sequence_list.selection_changed.connect(self._on_sequence_selection)
 
@@ -183,7 +192,7 @@ class MainWindow(QMainWindow):
     def _ops_panel(self) -> QWidget:
         panel = Panel("Operations")
         reset = QPushButton("Reset")
-        reset.setObjectName("Ghost")
+        reset.setObjectName("GhostSmall")
         reset.clicked.connect(self._reset_ops)
         panel.header.addWidget(reset)
 
@@ -283,10 +292,14 @@ class MainWindow(QMainWindow):
         self._scan_gen += 1
         generation = self._scan_gen
         self.set_status(f"Scanning {root}…")
-        self._run(
-            lambda _p: scan(root, recursive=recursive, include_single=singles),
-            lambda sequences: self._on_scanned(sequences, generation),
-        )
+
+        def work(_progress):
+            # Sweep up any .seqrename folder an older version left next to the
+            # files; the journals move into per-user app data, so undo survives.
+            journal.migrate_legacy(root)
+            return scan(root, recursive=recursive, include_single=singles)
+
+        self._run(work, lambda sequences: self._on_scanned(sequences, generation))
 
     def _on_scanned(self, sequences: list[Sequence], generation: int = 0) -> None:
         if generation and generation != self._scan_gen:
@@ -310,6 +323,22 @@ class MainWindow(QMainWindow):
         self._schedule_preview()
 
     # -- preview ---------------------------------------------------------
+
+    def clear_queue(self) -> None:
+        """Empty the sequence list. Touches no files - rescan to get it back."""
+        if self._busy:
+            return
+        self.sequence_list.set_sequences([])
+        self.seq_count.setText("0")
+        self.seq_empty.set_text(
+            "Queue cleared",
+            "Press F5 to scan this folder again, or choose another one.",
+        )
+        self.seq_stack.setCurrentWidget(self.seq_empty)
+        self.thumbs.show_sequence(None)
+        self.plan = None
+        self._scan_summary = "Queue cleared."
+        self._show_preview([], noop=True)
 
     def _on_sequence_selection(self, sequences: list[Sequence]) -> None:
         self.thumbs.show_sequence(sequences[0] if sequences else None)
@@ -543,6 +572,7 @@ class MainWindow(QMainWindow):
         self.progress.setValue(0)
         self.apply_button.setEnabled(not busy and bool(self.plan and self.plan.actionable))
         self.undo_button.setEnabled(not busy and self._undo_journal is not None)
+        self.clear_button.setEnabled(not busy)
         self.ops.setEnabled(not busy)
         if message:
             self.set_status(message)
