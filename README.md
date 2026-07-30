@@ -80,11 +80,15 @@ PYTHONPATH=src .venv/bin/python -m pytest tests -q
 The repo lives on a Linux partition; builds happen on the Windows side.
 
 ```bash
-./sync-to-windows.sh            # mirror to C:\Users\shann\Documents\win_dev\seqrename
+./sync-to-windows.sh            # mirror to C:\Users\USERNAME\Documents\win_dev\seqrename
 ./sync-to-windows.sh --dry-run  # preview the file list
 ./sync-to-windows.sh --build    # sync, then build over there
+WIN_USER=someone ./sync-to-windows.sh
 DEST=/mnt/c/elsewhere ./sync-to-windows.sh
 ```
+
+`USERNAME` is your Windows account name, looked up automatically; override it
+with `WIN_USER`, or give a full path with `DEST`.
 
 The Windows-side `.venv/`, `build/` and `dist/` are excluded, so repeated syncs
 never wipe the environment.

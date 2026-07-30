@@ -5,6 +5,10 @@
 #   ./sync-to-windows.sh --dry-run    # show what would change
 #   ./sync-to-windows.sh --build      # sync, then run build.ps1 on Windows
 #   DEST=/mnt/c/some/other/dir ./sync-to-windows.sh
+#   WIN_USER=someone ./sync-to-windows.sh
+#
+# The default target is /mnt/c/Users/USERNAME/Documents/win_dev/seqrename, where
+# USERNAME is your Windows account name, looked up automatically.
 #
 # The Windows-side venv, build/ and dist/ are never touched, so rebuilds stay
 # incremental.
@@ -12,7 +16,27 @@
 set -euo pipefail
 
 SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DEST="${DEST:-/mnt/c/Users/shann/Documents/win_dev/seqrename}"
+
+# Ask Windows for its own user name rather than hardcoding one. cmd.exe warns
+# about the UNC working directory on stderr and terminates lines with CRLF.
+windows_username() {
+  local name=""
+  if command -v cmd.exe >/dev/null 2>&1; then
+    name="$(cd /mnt/c 2>/dev/null && cmd.exe /c 'echo %USERNAME%' 2>/dev/null | tr -d '\r\n')"
+  fi
+  printf '%s' "${name:-${WIN_USER:-${USER:-}}}"
+}
+
+if [[ -z "${DEST:-}" ]]; then
+  WIN_USER="${WIN_USER:-$(windows_username)}"
+  if [[ -z "$WIN_USER" ]]; then
+    echo "Could not work out your Windows user name." >&2
+    echo "Set it explicitly:  WIN_USER=yourname $0" >&2
+    echo "or give a full path: DEST=/mnt/c/path/to/dir $0" >&2
+    exit 1
+  fi
+  DEST="/mnt/c/Users/$WIN_USER/Documents/win_dev/seqrename"
+fi
 
 DRY=()
 BUILD=0
