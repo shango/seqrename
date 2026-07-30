@@ -4,6 +4,21 @@ Semantic versioning. The version lives in `src/seqrename/__init__.py`; the
 package metadata, the app header badge and the Windows file-version resource
 are all derived from it.
 
+## [0.2.0] - 2026-07-30
+
+### Added
+- Per-user installer, for locked-down and networked workstations. `build.bat
+  -Installer` produces `dist\SeqRename-<version>-win64.zip`; unzip it on the
+  target machine and run `install.bat`.
+  - Installs to `%LOCALAPPDATA%\Programs\SeqRename`, writes Start Menu and
+    Desktop shortcuts and an uninstall entry under HKCU only. Nothing touches
+    Program Files, HKLM, the PATH, services or drivers, so no administrator
+    rights and no UAC prompt are involved.
+  - Clears the mark-of-the-web that Windows applies to files copied over a
+    network, which otherwise blocks the app from launching.
+  - `-InstallDir` for a different location, `-NoDesktopShortcut`, `-Quiet`,
+    and `-Uninstall`. Uninstall also works from Apps & features.
+
 ## [0.1.0] - 2026-07-30
 
 First working build: engine plus the PySide6 desktop app for Windows 11.

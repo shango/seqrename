@@ -33,6 +33,21 @@ Shortcuts: `Ctrl+O` browse · `F5` rescan · `Ctrl+Enter` apply · `Ctrl+Z` undo
 .\run-dev.ps1               # run from source instead, no packaging
 ```
 
+### Installing on another machine
+
+```powershell
+.\build.bat -Installer      # -> dist\SeqRename-<version>-win64.zip
+```
+
+Copy the zip to the target workstation, unzip it, and run `install.bat`. It is a
+per-user install: files go to `%LOCALAPPDATA%\Programs\SeqRename`, shortcuts and
+the uninstall entry are written under HKCU, and nothing touches Program Files,
+HKLM, the PATH or any service. No administrator rights, no UAC prompt - which is
+what makes it work on a locked-down networked workstation. It also clears the
+mark-of-the-web that would otherwise block a build copied across the network.
+See [`packaging/INSTALL.txt`](packaging/INSTALL.txt) for options such as
+`-InstallDir`, `-Quiet` and `-Uninstall`.
+
 `build.bat` wraps `build.ps1`, which takes the same flags plus `-Clean`. The
 build refuses to run while `SeqRename.exe` is open (a running copy holds its
 DLLs), and after packaging it launches the exe with `--selftest` and fails if it

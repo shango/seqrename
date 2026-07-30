@@ -14,6 +14,7 @@ param(
     [switch]$Clean,
     [switch]$SkipTests,
     [switch]$KillRunning,
+    [switch]$Installer,
     [switch]$Run
 )
 
@@ -103,6 +104,28 @@ $size = (Get-ChildItem (Join-Path $Root "dist\SeqRename") -Recurse |
          Measure-Object -Property Length -Sum).Sum / 1MB
 Write-Host "`nBuilt $exe" -ForegroundColor Green
 Write-Host ("Folder size: {0:N0} MB" -f $size)
+
+if ($Installer) {
+    Step "Assembling the installer package"
+    $version = (Get-Item $exe).VersionInfo.FileVersion -replace '\.0$', ''
+    $stage = Join-Path $Root "dist\SeqRename-$version-win64"
+    $zip = "$stage.zip"
+
+    foreach ($path in @($stage, $zip)) {
+        if (Test-Path $path) { Remove-Item $path -Recurse -Force }
+    }
+    New-Item $stage -ItemType Directory -Force | Out-Null
+
+    Copy-Item (Join-Path $Root "dist\SeqRename") (Join-Path $stage "app") -Recurse
+    foreach ($file in @("Install-SeqRename.ps1", "install.bat", "INSTALL.txt")) {
+        Copy-Item (Join-Path $Root "packaging\$file") $stage
+    }
+
+    Compress-Archive -Path "$stage\*" -DestinationPath $zip -CompressionLevel Optimal
+    $zipSize = (Get-Item $zip).Length / 1MB
+    Write-Host "`nInstaller package: $zip" -ForegroundColor Green
+    Write-Host ("Zip size: {0:N0} MB - copy it over, unzip, run install.bat" -f $zipSize)
+}
 
 if ($Run) {
     Step "Launching"

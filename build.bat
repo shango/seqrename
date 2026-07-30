@@ -3,6 +3,7 @@ REM Double-click me, or run from a terminal:
 REM     build.bat                 full build -> dist\SeqRename\SeqRename.exe
 REM     build.bat -SkipTests      skip the test run
 REM     build.bat -Clean          fresh venv, wipe build\ and dist\
+REM     build.bat -Installer      also produce the per-user installer zip
 REM     build.bat -SkipTests -Run rebuild and launch
 REM Any arguments are passed straight through to build.ps1.
 
