@@ -26,14 +26,14 @@ Shortcuts: `Ctrl+O` browse · `F5` rescan · `Ctrl+Enter` apply · `Ctrl+Z` undo
 
 Prebuilt Windows installer, no Python or build step needed:
 
-**[releases/SeqRename-0.2.0-win64.zip](releases/SeqRename-0.2.0-win64.zip)** - 44 MB
+**[releases/SeqRename-0.3.0-setup.exe](releases/SeqRename-0.3.0-setup.exe)** - 32 MB
 
 ```
-sha256  ac9ac556451d042b809cdf5a7ec05c649697bc18c2385804dd55e7b84f705e74
+sha256  b399ef1858932195e05cf3cc17db030a5b8d48aeb9571fd435b0279c58cc33b0
 ```
 
-Unzip it, open the `SeqRename-0.2.0-win64` folder, and run `install.bat`. It is
-a per-user install and needs no administrator rights - see
+Double-click it. It installs for the current user only, so there is no UAC
+prompt and no administrator rights are needed - see
 [Installing on another machine](#installing-on-another-machine).
 
 ## Run it
@@ -50,17 +50,30 @@ a per-user install and needs no administrator rights - see
 ### Installing on another machine
 
 ```powershell
-.\build.bat -Installer      # -> dist\SeqRename-<version>-win64.zip
+.\build.bat -Installer      # -> dist\SeqRename-<version>-setup.exe
 ```
 
-Copy the zip to the target workstation, unzip it, and run `install.bat`. It is a
-per-user install: files go to `%LOCALAPPDATA%\Programs\SeqRename`, shortcuts and
-the uninstall entry are written under HKCU, and nothing touches Program Files,
-HKLM, the PATH or any service. No administrator rights, no UAC prompt - which is
-what makes it work on a locked-down networked workstation. It also clears the
-mark-of-the-web that would otherwise block a build copied across the network.
-See [`packaging/INSTALL.txt`](packaging/INSTALL.txt) for options such as
-`-InstallDir`, `-Quiet` and `-Uninstall`.
+Copy the setup .exe to the target workstation and run it. It is a per-user
+install built with Inno Setup (`PrivilegesRequired=lowest`): files go to
+`%LOCALAPPDATA%\Programs\SeqRename`, the Start Menu shortcut and the uninstall
+entry are written under HKCU, and nothing touches Program Files, HKLM, the PATH
+or any service. No administrator rights, no UAC prompt - which is what makes it
+work on a locked-down networked workstation. Uninstall from Apps & features.
+
+Silent install, for deployment across several machines:
+
+```powershell
+SeqRename-0.3.0-setup.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
+SeqRename-0.3.0-setup.exe /VERYSILENT /DIR="D:\Tools\SeqRename"
+SeqRename-0.3.0-setup.exe /ALLUSERS          # machine-wide; this one needs admin
+```
+
+Compiling the installer needs [Inno Setup 6](https://jrsoftware.org/isdl.php) on
+the build machine. It installs per-user too, so it needs no admin either:
+
+```powershell
+innosetup-6.x.x.exe /VERYSILENT /CURRENTUSER /DIR="%LOCALAPPDATA%\Programs\Inno Setup 6"
+```
 
 `build.bat` wraps `build.ps1`, which takes the same flags plus `-Clean`. The
 build refuses to run while `SeqRename.exe` is open (a running copy holds its

@@ -4,6 +4,25 @@ Semantic versioning. The version lives in `src/seqrename/__init__.py`; the
 package metadata, the app header badge and the Windows file-version resource
 are all derived from it.
 
+## [0.3.0] - 2026-07-30
+
+### Changed
+- The installer is now a real setup executable built with Inno Setup, replacing
+  the PowerShell script and `install.bat`. `build.bat -Installer` produces
+  `dist\SeqRename-<version>-setup.exe` (32 MB, down from a 44 MB zip).
+  - Still a per-user install: `PrivilegesRequired=lowest` means no elevation and
+    no UAC prompt, `{autopf}` resolves to `%LOCALAPPDATA%\Programs`, and the
+    uninstall entry stays in HKCU. `/ALLUSERS` opts into a machine-wide install
+    for anyone who does have admin.
+  - Supports the usual silent switches (`/VERYSILENT`, `/DIR=`, `/NORESTART`)
+    for deploying across several workstations.
+  - Extracted files carry no mark-of-the-web, so the workaround the script
+    installer needed is no longer necessary.
+
+### Removed
+- `packaging/Install-SeqRename.ps1`, `packaging/install.bat` and
+  `packaging/INSTALL.txt`, superseded by the Inno Setup installer.
+
 ## [0.2.0] - 2026-07-30
 
 ### Added

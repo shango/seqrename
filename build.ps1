@@ -106,27 +106,39 @@ Write-Host "`nBuilt $exe" -ForegroundColor Green
 Write-Host ("Folder size: {0:N0} MB" -f $size)
 
 if ($Installer) {
-    Step "Assembling the installer package"
+    Step "Compiling the installer"
     $version = (Get-Item $exe).VersionInfo.FileVersion -replace '\.0$', ''
-    $stage = Join-Path $Root "dist\SeqRename-$version-win64"
-    $zip = "$stage.zip"
 
-    foreach ($path in @($stage, $zip)) {
-        if (Test-Path $path) { Remove-Item $path -Recurse -Force }
+    # Inno Setup installs per-user too, so look inside the profile first.
+    $isccCandidates = @(
+        (Join-Path $env:LOCALAPPDATA "Programs\Inno Setup 6\ISCC.exe"),
+        "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe",
+        "$env:ProgramFiles\Inno Setup 6\ISCC.exe"
+    )
+    $iscc = $isccCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+    if (-not $iscc) {
+        $iscc = (Get-Command ISCC.exe -ErrorAction SilentlyContinue).Source
     }
-    New-Item $stage -ItemType Directory -Force | Out-Null
+    if (-not $iscc) {
+        throw @"
+Inno Setup 6 is not installed, so the installer cannot be compiled.
+Get it from https://jrsoftware.org/isdl.php and install it for the current
+user (the installer accepts /CURRENTUSER, so no admin rights are needed):
 
-    Copy-Item (Join-Path $Root "dist\SeqRename") (Join-Path $stage "app") -Recurse
-    foreach ($file in @("Install-SeqRename.ps1", "install.bat", "INSTALL.txt")) {
-        Copy-Item (Join-Path $Root "packaging\$file") $stage
+  innosetup-6.x.x.exe /VERYSILENT /CURRENTUSER /DIR="%LOCALAPPDATA%\Programs\Inno Setup 6"
+"@
     }
 
-    # Compress the folder itself, not its contents, so the zip always unpacks
-    # into one named folder instead of spraying files into Downloads.
-    Compress-Archive -Path $stage -DestinationPath $zip -CompressionLevel Optimal
-    $zipSize = (Get-Item $zip).Length / 1MB
-    Write-Host "`nInstaller package: $zip" -ForegroundColor Green
-    Write-Host ("Zip size: {0:N0} MB - copy it over, unzip, run install.bat" -f $zipSize)
+    & $iscc "/DAppVersion=$version" (Join-Path $Root "packaging\SeqRename.iss") | ForEach-Object {
+        if ($_ -match "^(Error|Warning)") { Write-Host $_ -ForegroundColor Yellow }
+    }
+    if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed (exit code $LASTEXITCODE)" }
+
+    $setup = Join-Path $Root "dist\SeqRename-$version-setup.exe"
+    if (-not (Test-Path $setup)) { throw "Expected $setup but it is missing" }
+    $setupSize = (Get-Item $setup).Length / 1MB
+    Write-Host "`nInstaller: $setup" -ForegroundColor Green
+    Write-Host ("Size: {0:N0} MB - double-click to install, no admin rights needed" -f $setupSize)
 }
 
 if ($Run) {

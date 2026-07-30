@@ -4,7 +4,7 @@ from .ops import Case, ExtCase, OutputMode, RenameOps, VersionOp
 from .plan import CommitResult, Entry, Plan, Status, last_undoable, undo
 from .scanner import Frame, Sequence, scan
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 __all__ = [
     "Case",
     "CommitResult",
