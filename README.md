@@ -22,6 +22,20 @@ anything touches disk.
 
 Shortcuts: `Ctrl+O` browse · `F5` rescan · `Ctrl+Enter` apply · `Ctrl+Z` undo.
 
+## Download
+
+Prebuilt Windows installer, no Python or build step needed:
+
+**[releases/SeqRename-0.2.0-win64.zip](releases/SeqRename-0.2.0-win64.zip)** - 44 MB
+
+```
+sha256  ac9ac556451d042b809cdf5a7ec05c649697bc18c2385804dd55e7b84f705e74
+```
+
+Unzip it, open the `SeqRename-0.2.0-win64` folder, and run `install.bat`. It is
+a per-user install and needs no administrator rights - see
+[Installing on another machine](#installing-on-another-machine).
+
 ## Run it
 
 **Windows** (the target platform):

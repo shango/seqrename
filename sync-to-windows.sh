@@ -49,6 +49,7 @@ rsync -rlt --delete "${DRY[@]+"${DRY[@]}"}" \
   --exclude '.ruff_cache/' \
   --exclude 'build/' \
   --exclude 'dist/' \
+  --exclude 'releases/' \
   --exclude '*.egg-info/' \
   --itemize-changes \
   "$SRC/" "$DEST/"

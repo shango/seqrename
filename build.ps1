@@ -121,7 +121,9 @@ if ($Installer) {
         Copy-Item (Join-Path $Root "packaging\$file") $stage
     }
 
-    Compress-Archive -Path "$stage\*" -DestinationPath $zip -CompressionLevel Optimal
+    # Compress the folder itself, not its contents, so the zip always unpacks
+    # into one named folder instead of spraying files into Downloads.
+    Compress-Archive -Path $stage -DestinationPath $zip -CompressionLevel Optimal
     $zipSize = (Get-Item $zip).Length / 1MB
     Write-Host "`nInstaller package: $zip" -ForegroundColor Green
     Write-Host ("Zip size: {0:N0} MB - copy it over, unzip, run install.bat" -f $zipSize)

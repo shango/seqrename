@@ -1,8 +1,9 @@
 SeqRename - install
 ===================
 
-1. Unzip this folder anywhere (Desktop or Downloads is fine).
-2. Double-click install.bat.
+1. Unzip the download anywhere (Desktop or Downloads is fine). It unpacks
+   into a single folder, SeqRename-<version>-win64.
+2. Open that folder and double-click install.bat.
 3. Start SeqRename from the Start Menu.
 
 No administrator rights are needed. Everything goes into your own profile:

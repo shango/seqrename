@@ -18,6 +18,8 @@ are all derived from it.
     network, which otherwise blocks the app from launching.
   - `-InstallDir` for a different location, `-NoDesktopShortcut`, `-Quiet`,
     and `-Uninstall`. Uninstall also works from Apps & features.
+  - The built package is committed to `releases/` so it can be downloaded
+    straight from the repo. The zip unpacks into a single named folder.
 
 ## [0.1.0] - 2026-07-30
 

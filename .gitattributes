@@ -1,0 +1,9 @@
+# Shipped installer packages - never diff or line-ending-convert these.
+*.zip binary
+*.ico binary
+*.png binary
+
+# Windows scripts keep CRLF so they read correctly in Notepad and ISE.
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.txt text eol=crlf
